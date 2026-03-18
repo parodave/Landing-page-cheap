@@ -1,22 +1,13 @@
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { FormShell } from '@/components/form/form-shell';
 import { PageShell } from '@/components/shared/page-shell';
 
 export default function FormulairePage() {
   return (
     <PageShell
       title="Formulaire client"
-      description="Cette page accueillera bientôt le formulaire complet pour collecter vos besoins."
+      description="Partagez vos besoins en 7 étapes pour cadrer rapidement votre landing page."
     >
-      <Card className="space-y-4">
-        <p className="text-sm text-muted">
-          Vous pourrez ici décrire votre activité, votre offre, vos objectifs et vos contenus. Cette base sera ensuite
-          connectée à Stripe, Supabase, Resend et à la génération PDF dans les prochaines étapes.
-        </p>
-        <Button href="/support" variant="ghost">
-          Contacter le support WhatsApp
-        </Button>
-      </Card>
+      <FormShell />
     </PageShell>
   );
 }
