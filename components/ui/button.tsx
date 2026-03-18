@@ -1,17 +1,27 @@
 import Link from 'next/link';
 import { cn } from '@/lib/utils/cn';
-import { ReactNode } from 'react';
+import { ButtonHTMLAttributes, ReactNode } from 'react';
 
-type ButtonProps = {
+type ButtonBaseProps = {
   children: ReactNode;
-  href?: string;
   variant?: 'primary' | 'ghost';
   className?: string;
 };
 
-export function Button({ children, href, variant = 'primary', className }: ButtonProps) {
+type LinkButtonProps = ButtonBaseProps & {
+  href: string;
+};
+
+type NativeButtonProps = ButtonBaseProps &
+  Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className' | 'children'> & {
+    href?: undefined;
+  };
+
+type ButtonProps = LinkButtonProps | NativeButtonProps;
+
+export function Button({ children, href, variant = 'primary', className, ...buttonProps }: ButtonProps) {
   const base =
-    'inline-flex h-11 items-center justify-center rounded-md px-5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30';
+    'inline-flex h-11 items-center justify-center rounded-md px-5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 disabled:cursor-not-allowed disabled:opacity-50';
 
   const styles = {
     primary: 'bg-white text-black hover:bg-zinc-200',
@@ -26,5 +36,9 @@ export function Button({ children, href, variant = 'primary', className }: Butto
     );
   }
 
-  return <button className={cn(base, styles[variant], className)}>{children}</button>;
+  return (
+    <button className={cn(base, styles[variant], className)} {...buttonProps}>
+      {children}
+    </button>
+  );
 }
