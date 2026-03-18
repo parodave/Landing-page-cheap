@@ -4,14 +4,14 @@ import { useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { FormProgress } from '@/components/form/form-progress';
 import { StepNavigation } from '@/components/form/step-navigation';
-import { FormStepDefinition } from '@/lib/types/form';
+import { FormStepDefinition, FormStepKey } from '@/lib/types/form';
 import { ActivityStep } from './steps/activity-step';
 import { ContactDeliveryStep } from './steps/contact-delivery-step';
 import { ContentStep } from './steps/content-step';
 import { DesignStep } from './steps/design-step';
 import { IdentityStep } from './steps/identity-step';
 import { OfferStep } from './steps/offer-step';
-import { SummaryStep } from './steps/summary-step';
+import { ReviewStep } from './steps/review-step';
 import { FormData, FormFilesData, INITIAL_FORM_DATA, INITIAL_FORM_FILES } from './steps/types';
 
 type StepDefinition = FormStepDefinition & {
@@ -24,6 +24,7 @@ type StepDefinition = FormStepDefinition & {
       value: string
     ) => void;
     onFilesChange: (field: keyof FormFilesData, files: File[]) => void;
+    onEditSection: (step: FormStepKey) => void;
   }) => JSX.Element;
 };
 
@@ -112,7 +113,7 @@ const STEP_DEFINITIONS: StepDefinition[] = [
     key: 'review',
     title: 'Récapitulatif',
     description: 'Vérifiez l’ensemble de vos réponses avant validation.',
-    render: ({ data, files }) => <SummaryStep data={data} files={files} />
+    render: ({ data, onEditSection }) => <ReviewStep data={data} onEditSection={onEditSection} />
   }
 ];
 
@@ -169,6 +170,17 @@ export function FormShell() {
     setIsSubmitted(true);
   };
 
+  const handleEditSection = (step: FormStepKey) => {
+    const targetStepIndex = STEP_DEFINITIONS.findIndex((definition) => definition.key === step);
+
+    if (targetStepIndex === -1 || targetStepIndex === currentStepIndex) {
+      return;
+    }
+
+    setCurrentStepIndex(targetStepIndex);
+    setIsSubmitted(false);
+  };
+
   const progressLabel = useMemo(
     () => `${currentStepNumber}/${totalSteps}`,
     [currentStepNumber, totalSteps]
@@ -197,7 +209,13 @@ export function FormShell() {
         ))}
       </ol>
 
-      {currentStep.render({ data: formData, files: formFiles, onSectionChange, onFilesChange })}
+      {currentStep.render({
+        data: formData,
+        files: formFiles,
+        onSectionChange,
+        onFilesChange,
+        onEditSection: handleEditSection
+      })}
 
       {isSubmitted && (
         <p className="rounded-md border border-zinc-800 bg-zinc-900/60 p-3 text-sm text-zinc-100">
