@@ -27,7 +27,11 @@ export default async function BriefPage({ params }: BriefPageProps) {
       title={`Brief interne #${brief.id}`}
       description="Version interne lisible et structurée du brief client, prête pour production et réutilisation future."
     >
-      <InternalBriefView internalBrief={internalBrief} internalBriefText={`${internalBriefText}\n\n${JSON.stringify(reusablePayload, null, 2)}`} />
+      <InternalBriefView
+        briefId={brief.id}
+        internalBrief={internalBrief}
+        internalBriefText={`${internalBriefText}\n\n${JSON.stringify(reusablePayload, null, 2)}`}
+      />
     </PageShell>
   );
 }

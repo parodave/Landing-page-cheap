@@ -1,7 +1,9 @@
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import type { InternalBrief } from '@/lib/types/internal-brief';
 
 type InternalBriefViewProps = {
+  briefId: string;
   internalBrief: InternalBrief;
   internalBriefText: string;
 };
@@ -24,9 +26,15 @@ function ListOrFallback({ items, fallback }: { items: string[]; fallback: string
   );
 }
 
-export function InternalBriefView({ internalBrief, internalBriefText }: InternalBriefViewProps) {
+export function InternalBriefView({ briefId, internalBrief, internalBriefText }: InternalBriefViewProps) {
   return (
     <div className="space-y-6">
+      <div className="flex flex-wrap gap-3">
+        <Button href={`/briefs/${briefId}/prompt`} variant="ghost">
+          Voir le prompt de production
+        </Button>
+      </div>
+
       <Card className="space-y-3 bg-zinc-950 text-zinc-100">
         <SectionTitle>Résumé</SectionTitle>
         <p className="text-sm text-zinc-200">
