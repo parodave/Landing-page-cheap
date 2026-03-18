@@ -4,6 +4,13 @@ export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 export type OrderMetadata = Record<string, string>;
 
+export type OrderNotifications = {
+  internalOrderEmail?: {
+    sentAt: string;
+    messageId: string;
+  };
+};
+
 export type OrderRecord = {
   id: string;
   stripeSessionId: string;
@@ -18,8 +25,9 @@ export type OrderRecord = {
   createdAt: string;
   paidAt: string | null;
   metadata: OrderMetadata;
+  notifications?: OrderNotifications;
 };
 
-export type CreateOrderInput = Omit<OrderRecord, 'id' | 'createdAt'> & {
+export type CreateOrderInput = Omit<OrderRecord, 'id' | 'createdAt' | 'notifications'> & {
   createdAt?: string;
 };

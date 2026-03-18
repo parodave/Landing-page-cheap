@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { markBriefAsPaid, updateBrief, getBriefByStripeSessionId } from '@/lib/briefs';
+import { sendInternalOrderEmail } from '@/lib/email/send-internal-order-email';
 import { PAYMENT_METADATA } from '@/lib/constants/payment';
 import { ordersRepository } from '@/lib/orders';
 import { getStripeServerClient, getStripeWebhookSecret } from '@/lib/stripe';
-import type { CreateOrderInput } from '@/lib/types/order';
+import type { BriefRecord } from '@/lib/types/brief';
+import type { CreateOrderInput, OrderRecord } from '@/lib/types/order';
 
 export const runtime = 'nodejs';
 
@@ -62,7 +64,7 @@ async function syncBriefFromCheckoutSession(session: Stripe.Checkout.Session, st
       console.info(`[briefs] Brief ${paidBrief.id} marked as paid from session ${session.id}.`);
     }
 
-    return;
+    return paidBrief;
   }
 
   if (status === 'expired') {
@@ -79,14 +81,14 @@ async function syncBriefFromCheckoutSession(session: Stripe.Checkout.Session, st
 
       if (expiredBrief) {
         console.info(`[briefs] Brief ${expiredBrief.id} marked as payment expired for session ${session.id}.`);
-        return;
+        return expiredBrief;
       }
     }
 
     const briefBySession = await getBriefByStripeSessionId(session.id);
 
     if (briefBySession) {
-      await updateBrief(briefBySession.id, {
+      const updatedBrief = await updateBrief(briefBySession.id, {
         payment: {
           stripeSessionId: session.id,
           paymentStatus: 'expired',
@@ -96,7 +98,36 @@ async function syncBriefFromCheckoutSession(session: Stripe.Checkout.Session, st
         }
       });
       console.info(`[briefs] Brief ${briefBySession.id} marked as payment expired for session ${session.id}.`);
+      return updatedBrief;
     }
+  }
+
+  return null;
+}
+
+async function maybeSendInternalOrderEmail(params: { order: OrderRecord; brief: BriefRecord | null }) {
+  const { order, brief } = params;
+
+  if (!brief || order.status !== 'paid') {
+    return;
+  }
+
+  if (order.notifications?.internalOrderEmail?.sentAt) {
+    console.info(`[email] Internal email already sent for session ${order.stripeSessionId}.`);
+    return;
+  }
+
+  try {
+    const result = await sendInternalOrderEmail({ brief, order });
+
+    await ordersRepository.markInternalOrderEmailSent({
+      stripeSessionId: order.stripeSessionId,
+      messageId: result.messageId
+    });
+
+    console.info(`[email] Internal order email sent for session ${order.stripeSessionId}.`);
+  } catch (error) {
+    console.error(`[email] Failed to send internal order email for session ${order.stripeSessionId}.`, error);
   }
 }
 
@@ -104,12 +135,17 @@ async function handleCheckoutSessionEvent(session: Stripe.Checkout.Session, stat
   const { created, order } = await ordersRepository.saveOrder(toOrderFromCheckoutSession(session, status));
 
   if (!created) {
-    console.info(`[stripe-webhook] Session already handled: ${order.stripeSessionId}`);
-    return;
+    console.info(`[stripe-webhook] Session already handled in orders store: ${order.stripeSessionId}`);
+  } else {
+    console.info(`[stripe-webhook] Order saved for session ${order.stripeSessionId} with status ${order.status}.`);
   }
 
-  console.info(`[stripe-webhook] Order saved for session ${order.stripeSessionId} with status ${order.status}.`);
-  await syncBriefFromCheckoutSession(session, status);
+  const syncedBrief = await syncBriefFromCheckoutSession(session, status);
+
+  await maybeSendInternalOrderEmail({
+    order,
+    brief: syncedBrief
+  });
 }
 
 async function handlePaymentIntentFailedEvent(paymentIntent: Stripe.PaymentIntent) {

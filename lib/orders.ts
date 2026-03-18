@@ -21,7 +21,15 @@ async function readOrders(): Promise<OrderRecord[]> {
 
   try {
     const parsed = JSON.parse(fileContent);
-    return Array.isArray(parsed) ? (parsed as OrderRecord[]) : [];
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed.map((order) => ({
+      ...(order as OrderRecord),
+      notifications: (order as OrderRecord).notifications ?? {}
+    }));
   } catch {
     console.warn('[orders] Invalid JSON in data/orders.json, resetting in-memory read to empty array.');
     return [];
@@ -48,6 +56,7 @@ export async function saveOrder(input: CreateOrderInput): Promise<{ order: Order
   const order: OrderRecord = {
     id: randomUUID(),
     createdAt: input.createdAt ?? new Date().toISOString(),
+    notifications: {},
     ...input
   };
 
@@ -57,7 +66,34 @@ export async function saveOrder(input: CreateOrderInput): Promise<{ order: Order
   return { order, created: true };
 }
 
+export async function markInternalOrderEmailSent(params: { stripeSessionId: string; messageId: string }) {
+  const { stripeSessionId, messageId } = params;
+  const orders = await readOrders();
+  const orderIndex = orders.findIndex((order) => order.stripeSessionId === stripeSessionId);
+
+  if (orderIndex < 0) {
+    return null;
+  }
+
+  const updatedOrder: OrderRecord = {
+    ...orders[orderIndex],
+    notifications: {
+      ...(orders[orderIndex].notifications ?? {}),
+      internalOrderEmail: {
+        sentAt: new Date().toISOString(),
+        messageId
+      }
+    }
+  };
+
+  orders[orderIndex] = updatedOrder;
+  await writeOrders(orders);
+
+  return updatedOrder;
+}
+
 export const ordersRepository = {
   getOrderByStripeSessionId,
-  saveOrder
+  saveOrder,
+  markInternalOrderEmailSent
 };
