@@ -8,8 +8,11 @@ import { Button } from '@/components/ui/button';
 import { FormStepDefinition, FormStepKey } from '@/lib/types/form';
 import { clientFormSchema } from '@/lib/validations/form';
 import {
+  clearBriefIdFromStorage,
   clearFormDraftFromStorage,
+  readBriefIdFromStorage,
   readFormDraftFromStorage,
+  saveBriefIdToStorage,
   saveFormDraftToStorage
 } from '@/lib/utils/storage';
 import { LANDING_EXPRESS_PAYMENT } from '@/lib/constants/payment';
@@ -164,6 +167,10 @@ function getFirstValidationErrorMessage(data: FormData) {
   return validationResult.error.issues[0]?.message ?? 'Veuillez compléter correctement les champs requis.';
 }
 
+function toAssetFileNames(files: File[]): string[] {
+  return files.map((file) => file.name).filter((fileName) => fileName.trim().length > 0);
+}
+
 export function FormShell() {
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [formFiles, setFormFiles] = useState<FormFilesData>(INITIAL_FORM_FILES);
@@ -172,6 +179,7 @@ export function FormShell() {
   const [isCreatingCheckoutSession, setIsCreatingCheckoutSession] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [hasHydratedFromStorage, setHasHydratedFromStorage] = useState(false);
+  const [briefId, setBriefId] = useState<string | null>(null);
 
   const totalSteps = STEP_DEFINITIONS.length;
   const currentStepNumber = currentStepIndex + 1;
@@ -200,6 +208,7 @@ export function FormShell() {
       });
     }
 
+    setBriefId(readBriefIdFromStorage());
     setHasHydratedFromStorage(true);
   }, [totalSteps]);
 
@@ -255,6 +264,34 @@ export function FormShell() {
     setCheckoutError(null);
   };
 
+  const createOrUpdateBrief = async () => {
+    const briefResponse = await fetch('/api/briefs', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        briefId: briefId ?? undefined,
+        formData,
+        assets: {
+          logoFileNames: toAssetFileNames(formFiles.logo),
+          photoFileNames: toAssetFileNames(formFiles.photos)
+        }
+      })
+    });
+
+    const briefPayload = (await briefResponse.json()) as { error?: string; briefId?: string };
+
+    if (!briefResponse.ok || !briefPayload.briefId) {
+      throw new Error(briefPayload.error ?? 'Impossible de sauvegarder le brief client.');
+    }
+
+    setBriefId(briefPayload.briefId);
+    saveBriefIdToStorage(briefPayload.briefId);
+
+    return briefPayload.briefId;
+  };
+
   const handleStartCheckout = async () => {
     if (isCreatingCheckoutSession) {
       return;
@@ -272,6 +309,8 @@ export function FormShell() {
     setIsCreatingCheckoutSession(true);
 
     try {
+      const persistedBriefId = await createOrUpdateBrief();
+
       const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: {
@@ -279,7 +318,8 @@ export function FormShell() {
         },
         body: JSON.stringify({
           customerEmail: formData.contact.email,
-          businessName: formData.identity.brandName
+          businessName: formData.identity.brandName,
+          briefId: persistedBriefId
         })
       });
 
@@ -307,7 +347,9 @@ export function FormShell() {
     setCurrentStepIndex(0);
     setIsSubmitted(false);
     setCheckoutError(null);
+    setBriefId(null);
     clearFormDraftFromStorage();
+    clearBriefIdFromStorage();
   };
 
   const handleEditSection = (step: FormStepKey) => {
