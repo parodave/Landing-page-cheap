@@ -1,8 +1,9 @@
 'use client';
 
+import { FileField } from '@/components/form/fields/file-field';
 import { StepProps } from './types';
 
-export function DesignStep({ data, onSectionChange }: StepProps) {
+export function DesignStep({ data, files, onSectionChange, onFilesChange }: StepProps) {
   return (
     <div className="space-y-4">
       <div className="space-y-1">
@@ -30,6 +31,17 @@ export function DesignStep({ data, onSectionChange }: StepProps) {
           placeholder="Liens de sites, marques ou univers visuels"
         />
       </div>
+
+      <FileField
+        label="Photos"
+        name="photos"
+        hint="Ajoutez des visuels produits/ambiance (jusqu&apos;à 8 fichiers)."
+        accept="image/*"
+        multiple
+        maxFiles={8}
+        files={files.photos}
+        onFilesChange={(nextFiles) => onFilesChange('photos', nextFiles)}
+      />
     </div>
   );
 }
