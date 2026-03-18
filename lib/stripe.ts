@@ -2,7 +2,7 @@ import Stripe from 'stripe';
 
 let stripeClient: Stripe | null = null;
 
-function getRequiredEnvironmentVariable(name: 'STRIPE_SECRET_KEY' | 'NEXT_PUBLIC_APP_URL') {
+function getRequiredEnvironmentVariable(name: 'STRIPE_SECRET_KEY' | 'STRIPE_WEBHOOK_SECRET' | 'NEXT_PUBLIC_APP_URL') {
   const value = process.env[name];
 
   if (!value) {
@@ -19,6 +19,10 @@ export function getStripeServerClient() {
 
   stripeClient = new Stripe(getRequiredEnvironmentVariable('STRIPE_SECRET_KEY'));
   return stripeClient;
+}
+
+export function getStripeWebhookSecret() {
+  return getRequiredEnvironmentVariable('STRIPE_WEBHOOK_SECRET');
 }
 
 export function getAppUrl() {
