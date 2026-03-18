@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { DownloadPdfButton } from '@/components/brief/download-pdf-button';
 
 type ProductionPromptViewProps = {
   briefId: string;
@@ -24,6 +25,7 @@ export function ProductionPromptView({ briefId, promptText }: ProductionPromptVi
         <Button href={`/briefs/${briefId}`} variant="ghost">
           Retour au brief interne
         </Button>
+        <DownloadPdfButton briefId={briefId} label="Ouvrir le PDF" />
         <Button type="button" onClick={handleCopy}>
           {copied ? 'Copié ✅' : 'Copier le prompt'}
         </Button>
