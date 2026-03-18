@@ -1,8 +1,9 @@
 'use client';
 
+import { FileField } from '@/components/form/fields/file-field';
 import { StepProps } from './types';
 
-export function IdentityStep({ data, onSectionChange }: StepProps) {
+export function IdentityStep({ data, files, onSectionChange, onFilesChange }: StepProps) {
   return (
     <div className="space-y-4">
       <div className="space-y-1">
@@ -43,6 +44,16 @@ export function IdentityStep({ data, onSectionChange }: StepProps) {
           placeholder="Ex. Service local, e-commerce, coaching"
         />
       </div>
+
+      <FileField
+        label="Logo"
+        name="logo"
+        hint="PNG, JPG ou SVG. 1 fichier maximum."
+        accept="image/*"
+        maxFiles={1}
+        files={files.logo}
+        onFilesChange={(nextFiles) => onFilesChange('logo', nextFiles)}
+      />
     </div>
   );
 }

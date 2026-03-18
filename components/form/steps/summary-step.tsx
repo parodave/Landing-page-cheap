@@ -1,13 +1,17 @@
 'use client';
 
 import { ReviewSection } from '@/lib/types/form';
-import { FormData } from './types';
+import { FormData, FormFilesData } from './types';
 
 type SummaryStepProps = {
   data: FormData;
+  files: FormFilesData;
 };
 
-export function SummaryStep({ data }: SummaryStepProps) {
+export function SummaryStep({ data, files }: SummaryStepProps) {
+  const logoSummary = files.logo.map((file) => file.name).join(', ');
+  const photosSummary = files.photos.map((file) => file.name).join(', ');
+
   const sections: ReviewSection[] = [
     {
       key: 'identity',
@@ -15,7 +19,8 @@ export function SummaryStep({ data }: SummaryStepProps) {
       fields: [
         { label: 'Nom de marque', value: data.identity.brandName },
         { label: 'Raison sociale', value: data.identity.legalName },
-        { label: 'Secteur', value: data.identity.industry }
+        { label: 'Secteur', value: data.identity.industry },
+        { label: 'Logo', value: logoSummary }
       ]
     },
     {
@@ -39,7 +44,8 @@ export function SummaryStep({ data }: SummaryStepProps) {
       title: 'Design',
       fields: [
         { label: 'Direction visuelle', value: data.design.visualDirection },
-        { label: 'Inspirations', value: data.design.inspirations }
+        { label: 'Inspirations', value: data.design.inspirations },
+        { label: 'Photos', value: photosSummary }
       ]
     },
     {
