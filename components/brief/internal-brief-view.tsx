@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { DownloadPdfButton } from '@/components/brief/download-pdf-button';
 import type { InternalBrief } from '@/lib/types/internal-brief';
 
 type InternalBriefViewProps = {
@@ -33,6 +34,7 @@ export function InternalBriefView({ briefId, internalBrief, internalBriefText }:
         <Button href={`/briefs/${briefId}/prompt`} variant="ghost">
           Voir le prompt de production
         </Button>
+        <DownloadPdfButton briefId={briefId} label="Télécharger le PDF" />
       </div>
 
       <Card className="space-y-3 bg-zinc-950 text-zinc-100">
