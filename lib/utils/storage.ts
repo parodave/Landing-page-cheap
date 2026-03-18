@@ -98,3 +98,46 @@ export function clearFormDraftFromStorage() {
     // Intentionally ignore cleanup errors.
   }
 }
+
+export function readBriefIdFromStorage(): string | null {
+  const localStorage = getLocalStorage();
+
+  if (!localStorage) {
+    return null;
+  }
+
+  try {
+    const briefId = localStorage.getItem(FORM_STORAGE_KEYS.briefId)?.trim();
+    return briefId ? briefId : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveBriefIdToStorage(briefId: string) {
+  const localStorage = getLocalStorage();
+
+  if (!localStorage) {
+    return;
+  }
+
+  try {
+    localStorage.setItem(FORM_STORAGE_KEYS.briefId, briefId);
+  } catch {
+    // Ignore storage errors.
+  }
+}
+
+export function clearBriefIdFromStorage() {
+  const localStorage = getLocalStorage();
+
+  if (!localStorage) {
+    return;
+  }
+
+  try {
+    localStorage.removeItem(FORM_STORAGE_KEYS.briefId);
+  } catch {
+    // Ignore storage errors.
+  }
+}

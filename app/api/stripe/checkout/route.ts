@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { attachStripeSessionToBrief } from '@/lib/briefs';
 import { LANDING_EXPRESS_PAYMENT, PAYMENT_METADATA } from '@/lib/constants/payment';
 import { getAppUrl, getStripeServerClient } from '@/lib/stripe';
 
 const checkoutPayloadSchema = z.object({
   customerEmail: z.string().trim().email().optional(),
-  businessName: z.string().trim().min(1).max(120).optional()
+  businessName: z.string().trim().min(1).max(120).optional(),
+  briefId: z.string().trim().min(1).optional()
 });
 
 export const runtime = 'nodejs';
@@ -15,7 +17,8 @@ type CheckoutRequestPayload = z.infer<typeof checkoutPayloadSchema>;
 function sanitizePayload(payload: CheckoutRequestPayload) {
   return {
     customerEmail: payload.customerEmail?.trim() || undefined,
-    businessName: payload.businessName?.trim() || undefined
+    businessName: payload.businessName?.trim() || undefined,
+    briefId: payload.briefId?.trim() || undefined
   };
 }
 
@@ -50,7 +53,8 @@ export async function POST(request: Request) {
       metadata: {
         ...PAYMENT_METADATA,
         customerEmail: payload.customerEmail ?? '',
-        businessName: payload.businessName ?? ''
+        businessName: payload.businessName ?? '',
+        briefId: payload.briefId ?? ''
       },
       success_url: `${appUrl}/succes?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/formulaire?payment=cancelled`
@@ -60,7 +64,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Impossible de créer la session Stripe.' }, { status: 500 });
     }
 
-    return NextResponse.json({ url: session.url });
+    if (payload.briefId) {
+      await attachStripeSessionToBrief({
+        briefId: payload.briefId,
+        stripeSessionId: session.id,
+        amountTotal: session.amount_total,
+        currency: session.currency
+      });
+      console.info(`[briefs] Brief ${payload.briefId} attached to Stripe session ${session.id}.`);
+    }
+
+    return NextResponse.json({ url: session.url, briefId: payload.briefId ?? null });
   } catch (error) {
     console.error('Stripe checkout session error', error);
     return NextResponse.json({ error: 'Erreur serveur pendant la création de session Stripe.' }, { status: 500 });

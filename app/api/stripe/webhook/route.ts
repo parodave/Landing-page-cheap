@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { markBriefAsPaid, updateBrief, getBriefByStripeSessionId } from '@/lib/briefs';
 import { PAYMENT_METADATA } from '@/lib/constants/payment';
 import { ordersRepository } from '@/lib/orders';
 import { getStripeServerClient, getStripeWebhookSecret } from '@/lib/stripe';
@@ -45,6 +46,60 @@ function extractSessionIdFromPaymentIntent(paymentIntent: Stripe.PaymentIntent):
   return metadata.stripeSessionId || metadata.checkoutSessionId || metadata.checkout_session_id || null;
 }
 
+async function syncBriefFromCheckoutSession(session: Stripe.Checkout.Session, status: CreateOrderInput['status']) {
+  const metadata = normalizeMetadata(session.metadata);
+  const briefId = metadata.briefId || null;
+
+  if (status === 'paid') {
+    const paidBrief = await markBriefAsPaid({
+      briefId,
+      stripeSessionId: session.id,
+      amountTotal: session.amount_total,
+      currency: session.currency
+    });
+
+    if (paidBrief) {
+      console.info(`[briefs] Brief ${paidBrief.id} marked as paid from session ${session.id}.`);
+    }
+
+    return;
+  }
+
+  if (status === 'expired') {
+    if (briefId) {
+      const expiredBrief = await updateBrief(briefId, {
+        payment: {
+          stripeSessionId: session.id,
+          paymentStatus: 'expired',
+          amountTotal: session.amount_total,
+          currency: session.currency,
+          paidAt: null
+        }
+      });
+
+      if (expiredBrief) {
+        console.info(`[briefs] Brief ${expiredBrief.id} marked as payment expired for session ${session.id}.`);
+        return;
+      }
+    }
+
+    const briefBySession = await getBriefByStripeSessionId(session.id);
+
+    if (briefBySession) {
+      await updateBrief(briefBySession.id, {
+        payment: {
+          stripeSessionId: session.id,
+          paymentStatus: 'expired',
+          amountTotal: session.amount_total,
+          currency: session.currency,
+          paidAt: null
+        }
+      });
+      console.info(`[briefs] Brief ${briefBySession.id} marked as payment expired for session ${session.id}.`);
+    }
+  }
+}
+
 async function handleCheckoutSessionEvent(session: Stripe.Checkout.Session, status: CreateOrderInput['status']) {
   const { created, order } = await ordersRepository.saveOrder(toOrderFromCheckoutSession(session, status));
 
@@ -54,6 +109,7 @@ async function handleCheckoutSessionEvent(session: Stripe.Checkout.Session, stat
   }
 
   console.info(`[stripe-webhook] Order saved for session ${order.stripeSessionId} with status ${order.status}.`);
+  await syncBriefFromCheckoutSession(session, status);
 }
 
 async function handlePaymentIntentFailedEvent(paymentIntent: Stripe.PaymentIntent) {
@@ -88,8 +144,29 @@ async function handlePaymentIntentFailedEvent(paymentIntent: Stripe.PaymentInten
   });
 
   if (created) {
+    await markBriefPaymentFailed(stripeSessionId, paymentIntent.amount, paymentIntent.currency);
     console.info(`[stripe-webhook] Saved payment failure for session ${stripeSessionId}.`);
   }
+}
+
+async function markBriefPaymentFailed(stripeSessionId: string, amountTotal: number, currency: string | null) {
+  const brief = await getBriefByStripeSessionId(stripeSessionId);
+
+  if (!brief) {
+    return;
+  }
+
+  await updateBrief(brief.id, {
+    payment: {
+      stripeSessionId,
+      paymentStatus: 'failed',
+      amountTotal,
+      currency,
+      paidAt: null
+    }
+  });
+
+  console.info(`[briefs] Brief ${brief.id} marked as payment failed for session ${stripeSessionId}.`);
 }
 
 export async function POST(request: Request) {
