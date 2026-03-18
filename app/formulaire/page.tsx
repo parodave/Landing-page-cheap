@@ -1,5 +1,5 @@
-import { PageShell } from '@/components/shared/page-shell';
 import { FormShell } from '@/components/form/form-shell';
+import { PageShell } from '@/components/shared/page-shell';
 
 export default function FormulairePage() {
   return (
