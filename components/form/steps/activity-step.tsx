@@ -11,8 +11,8 @@ export function ActivityStep({ data, onSectionChange }: StepProps) {
         </label>
         <textarea
           id="audience"
-          value={data.activity.audience}
-          onChange={(event) => onSectionChange('activity', 'audience', event.target.value)}
+          value={data.business.audience}
+          onChange={(event) => onSectionChange('business', 'audience', event.target.value)}
           className="min-h-24 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground"
           placeholder="Qui sont vos clients idéaux ?"
         />
@@ -24,8 +24,8 @@ export function ActivityStep({ data, onSectionChange }: StepProps) {
         </label>
         <textarea
           id="businessGoal"
-          value={data.activity.businessGoal}
-          onChange={(event) => onSectionChange('activity', 'businessGoal', event.target.value)}
+          value={data.business.businessGoal}
+          onChange={(event) => onSectionChange('business', 'businessGoal', event.target.value)}
           className="min-h-24 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground"
           placeholder="Quel résultat attendez-vous du site ?"
         />

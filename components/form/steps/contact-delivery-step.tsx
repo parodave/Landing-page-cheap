@@ -12,8 +12,8 @@ export function ContactDeliveryStep({ data, onSectionChange }: StepProps) {
         <input
           id="email"
           type="email"
-          value={data.contactDelivery.email}
-          onChange={(event) => onSectionChange('contactDelivery', 'email', event.target.value)}
+          value={data.contact.email}
+          onChange={(event) => onSectionChange('contact', 'email', event.target.value)}
           className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground"
           placeholder="vous@entreprise.com"
         />
@@ -25,8 +25,8 @@ export function ContactDeliveryStep({ data, onSectionChange }: StepProps) {
         </label>
         <input
           id="whatsapp"
-          value={data.contactDelivery.whatsapp}
-          onChange={(event) => onSectionChange('contactDelivery', 'whatsapp', event.target.value)}
+          value={data.contact.whatsapp}
+          onChange={(event) => onSectionChange('contact', 'whatsapp', event.target.value)}
           className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground"
           placeholder="+33 ..."
         />
@@ -39,8 +39,8 @@ export function ContactDeliveryStep({ data, onSectionChange }: StepProps) {
         <input
           id="desiredDeadline"
           type="date"
-          value={data.contactDelivery.desiredDeadline}
-          onChange={(event) => onSectionChange('contactDelivery', 'desiredDeadline', event.target.value)}
+          value={data.contact.desiredDeadline}
+          onChange={(event) => onSectionChange('contact', 'desiredDeadline', event.target.value)}
           className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground"
         />
       </div>

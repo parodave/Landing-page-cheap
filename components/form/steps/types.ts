@@ -1,31 +1,6 @@
-export type FormData = {
-  identity: {
-    brandName: string;
-    legalName: string;
-    industry: string;
-  };
-  activity: {
-    audience: string;
-    businessGoal: string;
-  };
-  offer: {
-    coreOffer: string;
-    pricingRange: string;
-  };
-  design: {
-    visualDirection: string;
-    inspirations: string;
-  };
-  content: {
-    availableAssets: string;
-    requiredPages: string;
-  };
-  contactDelivery: {
-    email: string;
-    whatsapp: string;
-    desiredDeadline: string;
-  };
-};
+import { ClientFormData } from '@/lib/types/form';
+
+export type FormData = ClientFormData;
 
 export type StepProps = {
   data: FormData;
@@ -38,7 +13,7 @@ export const INITIAL_FORM_DATA: FormData = {
     legalName: '',
     industry: ''
   },
-  activity: {
+  business: {
     audience: '',
     businessGoal: ''
   },
@@ -54,7 +29,7 @@ export const INITIAL_FORM_DATA: FormData = {
     availableAssets: '',
     requiredPages: ''
   },
-  contactDelivery: {
+  contact: {
     email: '',
     whatsapp: '',
     desiredDeadline: ''

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { FormProgress } from '@/components/form/form-progress';
 import { StepNavigation } from '@/components/form/step-navigation';
+import { FormStepDefinition } from '@/lib/types/form';
 import { ActivityStep } from './steps/activity-step';
 import { ContactDeliveryStep } from './steps/contact-delivery-step';
 import { ContentStep } from './steps/content-step';
@@ -13,11 +14,7 @@ import { OfferStep } from './steps/offer-step';
 import { SummaryStep } from './steps/summary-step';
 import { FormData, INITIAL_FORM_DATA } from './steps/types';
 
-type StepDefinition = {
-  index: number;
-  id: string;
-  label: string;
-  description: string;
+type StepDefinition = FormStepDefinition & {
   render: (props: {
     data: FormData;
     onSectionChange: <K extends keyof FormData>(
@@ -31,8 +28,8 @@ type StepDefinition = {
 const STEP_DEFINITIONS: StepDefinition[] = [
   {
     index: 0,
-    id: 'identity',
-    label: 'Identité',
+    key: 'identity',
+    title: 'Identité',
     description: 'Renseignez vos informations de contact et le nom de votre activité.',
     render: ({ data, onSectionChange }) => (
       <IdentityStep data={data} onSectionChange={onSectionChange} />
@@ -40,8 +37,8 @@ const STEP_DEFINITIONS: StepDefinition[] = [
   },
   {
     index: 1,
-    id: 'activity',
-    label: 'Activité',
+    key: 'business',
+    title: 'Activité',
     description: 'Décrivez votre activité, votre cible et l’objectif principal de votre page.',
     render: ({ data, onSectionChange }) => (
       <ActivityStep data={data} onSectionChange={onSectionChange} />
@@ -49,8 +46,8 @@ const STEP_DEFINITIONS: StepDefinition[] = [
   },
   {
     index: 2,
-    id: 'offer',
-    label: 'Offre',
+    key: 'offer',
+    title: 'Offre',
     description: 'Précisez votre offre principale, vos services et votre appel à l’action.',
     render: ({ data, onSectionChange }) => (
       <OfferStep data={data} onSectionChange={onSectionChange} />
@@ -58,8 +55,8 @@ const STEP_DEFINITIONS: StepDefinition[] = [
   },
   {
     index: 3,
-    id: 'design',
-    label: 'Design',
+    key: 'design',
+    title: 'Design',
     description: 'Indiquez vos préférences visuelles, inspirations et ressources disponibles.',
     render: ({ data, onSectionChange }) => (
       <DesignStep data={data} onSectionChange={onSectionChange} />
@@ -67,8 +64,8 @@ const STEP_DEFINITIONS: StepDefinition[] = [
   },
   {
     index: 4,
-    id: 'content',
-    label: 'Contenu',
+    key: 'content',
+    title: 'Contenu',
     description: 'Ajoutez les textes, arguments clés et informations à afficher sur la page.',
     render: ({ data, onSectionChange }) => (
       <ContentStep data={data} onSectionChange={onSectionChange} />
@@ -76,8 +73,8 @@ const STEP_DEFINITIONS: StepDefinition[] = [
   },
   {
     index: 5,
-    id: 'contact-delivery',
-    label: 'Contact / livraison',
+    key: 'contact',
+    title: 'Contact / livraison',
     description: 'Renseignez les coordonnées publiques et les informations liées au domaine.',
     render: ({ data, onSectionChange }) => (
       <ContactDeliveryStep data={data} onSectionChange={onSectionChange} />
@@ -85,8 +82,8 @@ const STEP_DEFINITIONS: StepDefinition[] = [
   },
   {
     index: 6,
-    id: 'summary',
-    label: 'Récapitulatif',
+    key: 'review',
+    title: 'Récapitulatif',
     description: 'Vérifiez l’ensemble de vos réponses avant validation.',
     render: ({ data }) => <SummaryStep data={data} />
   }
@@ -150,17 +147,17 @@ export function FormShell() {
         <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">
           Étape {progressLabel}
         </p>
-        <h2 className="text-xl font-semibold text-zinc-100">{currentStep.label}</h2>
+        <h2 className="text-xl font-semibold text-zinc-100">{currentStep.title}</h2>
         <p className="text-sm text-zinc-300">{currentStep.description}</p>
       </div>
 
       <ol className="grid gap-2 text-xs text-zinc-400 sm:grid-cols-2">
         {STEP_DEFINITIONS.map((step) => (
           <li
-            key={step.id}
+            key={step.key}
             className={step.index === currentStepIndex ? 'font-semibold text-zinc-100' : ''}
           >
-            {step.index + 1}. {step.label}
+            {step.index + 1}. {step.title}
           </li>
         ))}
       </ol>
