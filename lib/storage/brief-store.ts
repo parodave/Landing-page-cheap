@@ -10,6 +10,7 @@ export type BriefStore = {
   updateBrief: (id: string, updates: UpdateBriefInput) => Promise<BriefRecord | null>;
   getBriefById: (id: string) => Promise<BriefRecord | null>;
   getBriefByStripeSessionId: (stripeSessionId: string) => Promise<BriefRecord | null>;
+  getAllBriefs: () => Promise<BriefRecord[]>;
 };
 
 async function ensureBriefsFileExists() {
@@ -97,6 +98,10 @@ export function createLocalBriefStore(): BriefStore {
     async getBriefByStripeSessionId(stripeSessionId) {
       const briefs = await readBriefs();
       return briefs.find((brief) => brief.payment.stripeSessionId === stripeSessionId) ?? null;
+    },
+
+    async getAllBriefs() {
+      return readBriefs();
     }
   };
 }

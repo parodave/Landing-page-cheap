@@ -20,6 +20,10 @@ export async function getBriefByStripeSessionId(stripeSessionId: string) {
   return briefStore.getBriefByStripeSessionId(stripeSessionId);
 }
 
+export async function getAllBriefs() {
+  return briefStore.getAllBriefs();
+}
+
 export async function attachStripeSessionToBrief(params: {
   briefId: string;
   stripeSessionId: string;
