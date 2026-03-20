@@ -8,6 +8,7 @@ import { ordersRepository } from '@/lib/orders';
 import { getStripeServerClient, getStripeWebhookSecret } from '@/lib/stripe';
 import type { BriefRecord } from '@/lib/types/brief';
 import type { CreateOrderInput, OrderRecord } from '@/lib/types/order';
+import { captureApiException } from '@/lib/monitoring/sentry';
 
 export const runtime = 'nodejs';
 
@@ -252,6 +253,7 @@ export async function POST(request: Request) {
   try {
     event = stripe.webhooks.constructEvent(payload, signature, getStripeWebhookSecret());
   } catch (error) {
+    captureApiException(error, { route: '/api/stripe/webhook', feature: 'stripe_webhook_signature' });
     console.error('[stripe-webhook] Signature verification failed.', error);
     return NextResponse.json({ error: 'Invalid Stripe signature.' }, { status: 400 });
   }
@@ -276,6 +278,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ received: true });
   } catch (error) {
+    captureApiException(error, { route: '/api/stripe/webhook', feature: 'stripe_webhook_handler', payload: { eventType: event.type } });
     console.error(`[stripe-webhook] Failed to handle event ${event.type}.`, error);
     return NextResponse.json({ error: 'Webhook handler failure.' }, { status: 500 });
   }

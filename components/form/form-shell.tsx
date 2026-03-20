@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { trackEvent } from '@/lib/analytics';
 import { Card } from '@/components/ui/card';
 import { FormProgress } from '@/components/form/form-progress';
 import { StepNavigation } from '@/components/form/step-navigation';
@@ -310,6 +311,7 @@ export function FormShell() {
 
     try {
       const persistedBriefId = await createOrUpdateBrief();
+      trackEvent('begin_checkout', { source: 'formulaire' });
 
       const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
@@ -373,11 +375,13 @@ export function FormShell() {
     [currentStepNumber, totalSteps]
   );
 
-  const [wasPaymentCancelled, setWasPaymentCancelled] = useState(false);
+  const wasPaymentCancelled = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
 
-  useEffect(() => {
     const search = new URLSearchParams(window.location.search);
-    setWasPaymentCancelled(search.get('payment') === 'cancelled');
+    return search.get('payment') === 'cancelled';
   }, []);
 
   return (

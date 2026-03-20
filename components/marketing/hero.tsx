@@ -1,5 +1,5 @@
+import { TrackableCta } from '@/components/analytics/trackable-cta';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Container } from '@/components/ui/container';
 import { SITE_CONFIG } from '@/lib/constants/site';
 
@@ -17,10 +17,12 @@ export function Hero() {
             rapidement.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Button href="/formulaire">Démarrer maintenant</Button>
-            <Button href="/support" variant="ghost">
+            <TrackableCta href="/formulaire" location="hero_primary_cta">
+              Démarrer maintenant
+            </TrackableCta>
+            <TrackableCta href="/support" variant="ghost" location="hero_secondary_cta">
               Poser une question
-            </Button>
+            </TrackableCta>
           </div>
         </div>
       </Container>

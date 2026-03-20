@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createBrief, updateBrief } from '@/lib/briefs';
 import { mapFormToBrief } from '@/lib/mappers/form-to-brief';
+import { captureApiException } from '@/lib/monitoring/sentry';
 
 export const runtime = 'nodejs';
 
@@ -73,6 +74,7 @@ export async function POST(request: Request) {
     const brief = await createBrief(mappedBrief);
     return NextResponse.json({ briefId: brief.id, status: brief.status }, { status: 201 });
   } catch (error) {
+    captureApiException(error, { route: '/api/briefs', feature: 'brief_save' });
     console.error('[briefs] Failed to save brief.', error);
     return NextResponse.json({ error: 'Erreur serveur pendant la sauvegarde du brief.' }, { status: 500 });
   }

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { MAIN_NAVIGATION, SITE_CONFIG } from '@/lib/constants/site';
 import { Container } from '@/components/ui/container';
-import { Button } from '@/components/ui/button';
+import { TrackableCta } from '@/components/analytics/trackable-cta';
 
 export function Navbar() {
   return (
@@ -19,9 +19,9 @@ export function Navbar() {
           ))}
         </nav>
 
-        <Button href="/formulaire" className="h-10 px-4 text-xs sm:text-sm">
+        <TrackableCta href="/formulaire" className="h-10 px-4 text-xs sm:text-sm" location="navbar_cta">
           Commencer
-        </Button>
+        </TrackableCta>
       </Container>
     </header>
   );

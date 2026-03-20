@@ -1,6 +1,20 @@
+import type { Metadata } from 'next';
 import { PageShell } from '@/components/shared/page-shell';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+
+export const metadata: Metadata = {
+  title: 'Paiement reçu',
+  description: 'Confirmation de paiement réussie pour votre commande Landing Express.',
+  alternates: {
+    canonical: '/succes'
+  },
+  openGraph: {
+    title: 'Paiement reçu',
+    description: 'Confirmation de paiement réussie pour votre commande Landing Express.',
+    url: '/succes'
+  }
+};
 
 export default function SuccesPage() {
   return (
