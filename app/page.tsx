@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Footer } from '@/components/layout/footer';
 import { Navbar } from '@/components/layout/navbar';
 import { Hero } from '@/components/marketing/hero';
@@ -6,6 +7,19 @@ import { Container } from '@/components/ui/container';
 import { Heading } from '@/components/ui/heading';
 import { Section } from '@/components/ui/section';
 import { BENEFITS, FAQ_ITEMS, HOW_IT_WORKS, OFFER_INCLUDES, SITE_CONFIG } from '@/lib/constants/site';
+
+export const metadata: Metadata = {
+  title: 'Landing page pro à 10€',
+  description: SITE_CONFIG.description,
+  alternates: {
+    canonical: '/'
+  },
+  openGraph: {
+    title: 'Landing page pro à 10€',
+    description: SITE_CONFIG.description,
+    url: '/'
+  }
+};
 
 export default function HomePage() {
   return (

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { attachStripeSessionToBrief } from '@/lib/briefs';
 import { LANDING_EXPRESS_PAYMENT, PAYMENT_METADATA } from '@/lib/constants/payment';
 import { getAppUrl, getStripeServerClient } from '@/lib/stripe';
+import { captureApiException } from '@/lib/monitoring/sentry';
 
 const checkoutPayloadSchema = z.object({
   customerEmail: z.string().trim().email().optional(),
@@ -76,6 +77,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: session.url, briefId: payload.briefId ?? null });
   } catch (error) {
+    captureApiException(error, { route: '/api/stripe/checkout', feature: 'stripe_checkout' });
     console.error('Stripe checkout session error', error);
     return NextResponse.json({ error: 'Erreur serveur pendant la création de session Stripe.' }, { status: 500 });
   }
